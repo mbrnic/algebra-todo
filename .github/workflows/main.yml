@@ -1,50 +1,17 @@
-name: CI/CD Pipeline
-on:
-  push:name: CI/CD Pipeline
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Install dependencies
-      run: composer install
-    - name: Run PHPUnit tests
-      run: vendor/bin/phpunit
-    - name: Run PHPStan static analysis
-      run: vendor/bin/phpstan analyze
-    - name: Deploy to staging
-      if: github.ref == 'refs/heads/main'
-      run: |
-        ssh user@staging-server "cd /var/www/myapp && git pull && composer install && pm2 restart myapp"
-    - name: Deploy to production
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      run: |
-        ssh user@production-server "cd /var/www/myapp && git pull && composer install && pm2 restart myapp"
+name: Super-Linter
 
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+on: push
+
 jobs:
-  build:
+  super-lint:
+    name: Lint code base
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-    - name: Install dependencies
-      run: npm install
-    - name: Run tests
-      run: npm test
-    - name: Deploy to staging
-      if: github.ref == 'refs/heads/main'
-      run: |
-        ssh user@staging-server "cd /var/www/myapp && git pull && npm install && pm2 restart myapp"
-    - name: Deploy to production
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      run: |
-        ssh user@production-server "cd /var/www/myapp && git pull && npm install && pm2 restart myapp"
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run Super-Linter
+        uses: github/super-linter@v4
+        env:
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
